@@ -31,51 +31,131 @@ object GUI {
 
   def createAndShowGUI(countries: List[Country], airports: List[Airport], runways: List[Runway]): Unit = {
     // Create a new Frame
-    val frame = new MainFrame {
-      title = "Airport and Runway Query"
-      preferredSize = new Dimension(800, 600)
+val frame = new MainFrame {
+  title = "Airport and Runway Query"
+  preferredSize = new Dimension(800, 600)
+  background = new Color(253, 213, 224) // pink
 
-      // Create a text area to display output
-      val outputArea = new TextArea {
-        editable = false
-        rows = 20
-        columns = 60
-      }
+  // Create a text area to display output
+  val outputArea = new TextArea {
+    background = new Color(255, 223, 211) // orange
+    editable = false
+    rows = 20
+    columns = 60
+  }
 
-      // Wrap the output area in a ScrollPane
-      val scrollPane = new ScrollPane(outputArea)
+  // Wrap the output area in a ScrollPane
+  val scrollPane = new ScrollPane(outputArea)
 
-      // Create a text field to input country name or code
-      val inputField = new TextField {
-        columns = 30
-      }
+  // Create a text field for input
+  val inputField = new TextField {
+    preferredSize = new Dimension(300, 20)
+    minimumSize = new Dimension(300, 20)
+    maximumSize = new Dimension(300, 20)
+  }
 
-      // GUI Components (example: buttons and input field)
-      contents = new BoxPanel(Orientation.Vertical) {
-        contents += new Label("Enter country name or code:")
-        contents += inputField
-
-        contents += new Button("Query") {
-          reactions += {
-            case event.ButtonClicked(_) =>
-              outputArea.text = query(countries, airports, runways, inputField.text.trim)
-          }
-        }
-
-        contents += new Button("Reports") {
-          reactions += {
-            case event.ButtonClicked(_) =>
-              outputArea.text = reports(countries, airports, runways)
-          }
-        }
-
-        // Add the ScrollPane instead of directly adding the TextArea
-        contents += scrollPane
-      }
-
-      // Ensures the window does not close immediately
-      peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+  // Panel for input label and field (horizontal alignment)
+val inputPanel = new BoxPanel(Orientation.Horizontal) {
+  background = new Color(253, 213, 224) // pink
+  contents += new Label("Enter country name or code:")
+  contents += Swing.HStrut(10) // espace entre le label et le champ texte
+  contents += inputField
+  contents += new Button("Query") {
+    reactions += {
+      case event.ButtonClicked(_) =>
+        outputArea.text = query(countries, airports, runways, inputField.text.trim)
+        outputArea.caret.position = 0
     }
+  }
+}
+
+// Panel for buttons (horizontal alignment for each button/label)
+val buttonPanel = new BoxPanel(Orientation.Vertical) {
+  background = new Color(253, 213, 224) // pink
+
+  // Create labels and buttons with left alignment
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Label("Reports")
+  }
+
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Label("Top 10 countries with the highest number of airports:")
+  }
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Button("Show highest") {
+      background = new Color(253, 213, 224)
+      reactions += {
+        case event.ButtonClicked(_) =>
+          outputArea.text = getTopCountries(countries, airports, top = true)
+          outputArea.caret.position = 0
+      }
+    }
+  }
+
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Label("Top 10 countries with the lowest number of airports:")
+  }
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Button("Show lowest") {
+      reactions += {
+        case event.ButtonClicked(_) =>
+          outputArea.text = getTopCountries(countries, airports, top = false)
+          outputArea.caret.position = 0
+      }
+    }
+  }
+
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Label("Types of runways per country:")
+  }
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Button("Show runway types") {
+      reactions += {
+        case event.ButtonClicked(_) =>
+          outputArea.text = getRunwayTypesPerCountry(runways)
+          outputArea.caret.position = 0
+      }
+    }
+  }
+
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Label("Top 10 most common runway latitudes:")
+  }
+  contents += new BoxPanel(Orientation.Horizontal) {
+    background = new Color(253, 213, 224)
+    contents += new Button("Show latitudes") {
+      reactions += {
+        case event.ButtonClicked(_) =>
+          outputArea.text = getTopRunwayLatitudes(runways)
+          outputArea.caret.position = 0
+      }
+    }
+  }
+}
+
+// Main layout (vertical)
+contents = new BoxPanel(Orientation.Vertical) {
+  background = new Color(253, 213, 224) // pink
+  contents += inputPanel
+  contents += Swing.VStrut(10) 
+  contents += buttonPanel
+  contents += Swing.VStrut(10) 
+  contents += scrollPane
+}
+
+
+
+  // Close behavior
+  peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+}
 
     // Make sure to run the GUI on the EDT (Event Dispatch Thread)
     Swing.onEDT {
@@ -195,4 +275,64 @@ object GUI {
 
     result.toString()
   }
+
+  def getTopCountries(countries: List[Country], airports: List[Airport], top: Boolean): String = {
+    val airportCounts = countries.map { country =>
+      val count = airports.count(_.isoCountry == country.code)
+      (country.name, count)
+    }
+
+    val sortedAirportCounts = if (top) {
+      airportCounts.sortBy { case (_, count) => -count }.take(10) // Top 10
+    } else {
+      airportCounts.sortBy { case (_, count) => count }.take(10) // Bottom 10
+    }
+
+    val title = if (top) "Top 10 countries with the highest number of airports:" 
+                else "Top 10 countries with the lowest number of airports:"
+    
+    val result = new StringBuilder(s"\n$title\n")
+    sortedAirportCounts.foreach { case (name, count) =>
+      result.append(s"  - $name: $count airports\n")
+    }
+    result.toString()
+  }
+
+def getRunwayTypesPerCountry(runways: List[Runway]): String = {
+  // Group runways by country and surface type
+  val runwaySurfacesPerCountry = runways.groupBy(_.airportRef).flatMap { case (airportId, runwaysForAirport) =>
+    val surfaceCount = runwaysForAirport.groupBy(_.surface).map { case (surface, surfaceRunways) =>
+      (surface, surfaceRunways.length)
+    }
+    surfaceCount
+  }
+
+  // Format the result
+  val result = new StringBuilder("\nTypes of runways per country:\n")
+  
+  // Display surface type counts for each country
+  runwaySurfacesPerCountry.foreach { case (surface, count) =>
+    result.append(s"  - $surface: $count runways\n")
+  }
+
+  result.toString()
+}
+
+
+def getTopRunwayLatitudes(runways: List[Runway]): String = {
+  val runwayLatitudes = runways.groupBy(_.leIdent).map { case (leIdent, runways) =>
+    (leIdent, runways.length)
+  }
+
+  val top10Latitudes = runwayLatitudes.toList.sortBy { case (_, count) => -count }.take(10)
+  
+  val result = new StringBuilder("\nTop 10 most common runway latitudes:\n")
+  top10Latitudes.foreach { case (leIdent, count) =>
+    result.append(s"  - $leIdent: $count runways\n")
+  }
+  result.toString()
+}
+
+
+
 }
