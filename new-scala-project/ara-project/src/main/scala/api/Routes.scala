@@ -28,7 +28,7 @@ object Routes {
 
   def queryRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
-    // QUERIES
+    // QUERIES to test
     // http://localhost:8080/query?country=France
     case GET -> Root / "query" :? CountryParamMatcher(countryParam) =>
       val result = Queries.query(countries, airports, runways, countryParam)
