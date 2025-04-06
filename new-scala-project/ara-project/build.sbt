@@ -18,7 +18,6 @@ lazy val root = (project in file("."))
       // GUI
       scalaSwing,
 
-
       // http4s stack
       http4sBlaze,
       http4sDsl,

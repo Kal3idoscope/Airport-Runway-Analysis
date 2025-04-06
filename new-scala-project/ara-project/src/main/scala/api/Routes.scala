@@ -11,17 +11,12 @@ import io.circe.generic.auto._
 import org.http4s.circe._
 
 object Routes {
-  // Chargez les données une fois au démarrage
+  // load data
   val countries = CSVParser.parseCountries("data/countries.csv")
   val airports = CSVParser.parseAirports("data/airports.csv")
   val runways = CSVParser.parseRunways("data/runways.csv")
 
-  // Encoders implicites pour la sérialisation JSON
-  //implicit val countryEncoder = jsonEncoderOf[IO, Country]
-  //implicit val airportEncoder = jsonEncoderOf[IO, Airport]
-  //implicit val runwayEncoder = jsonEncoderOf[IO, Runway]
-  //implicit val resultEncoder = jsonEncoderOf[IO, List[(Airport, List[Runway])]]
-  //implicit val reportEncoder = jsonEncoderOf[IO, List[(Country, Int)]]
+  // JSON serialization
   implicit val countryEncoder: EntityEncoder[IO, Country] = jsonEncoderOf[Country]
   implicit val airportEncoder: EntityEncoder[IO, Airport] = jsonEncoderOf[Airport]
   implicit val runwayEncoder: EntityEncoder[IO, Runway] = jsonEncoderOf[Runway]

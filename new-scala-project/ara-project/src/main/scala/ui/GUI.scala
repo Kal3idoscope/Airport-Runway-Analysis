@@ -9,34 +9,34 @@ import javax.swing.{WindowConstants, JScrollPane}
 
 object GUI {
 
-  // Helper function to normalize strings (remove accents and special characters)
+  // helper function to normalize strings (remove accents and special characters)
   def normalizeString(str: String): String = {
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "")
   }
 
   def start(): Unit = {
-    // Parse CSV files
+    // parse CSV files
     val countries = CSVParser.parseCountries("data/countries.csv")
     val airports = CSVParser.parseAirports("data/airports.csv")
     val runways = CSVParser.parseRunways("data/runways.csv")
 
-    // Debug statements to verify parsed data
+    // debug statements to verify parsed data
     println(s"Debug: Parsed countries = ${countries.length}")
     println(s"Debug: Parsed airports = ${airports.length}")
     println(s"Debug: Parsed runways = ${runways.length}")
 
-    // Initialize GUI
+    // initialize GUI
     createAndShowGUI(countries, airports, runways)
   }
 
   def createAndShowGUI(countries: List[Country], airports: List[Airport], runways: List[Runway]): Unit = {
-    // Create a new Frame
+    // new Frame
 val frame = new MainFrame {
   title = "Airport and Runway Query"
   preferredSize = new Dimension(800, 600)
   background = new Color(253, 213, 224) // pink
 
-  // Create a text area to display output
+  // text area to display output
   val outputArea = new TextArea {
     background = new Color(255, 223, 211) // orange
     editable = false
@@ -44,21 +44,21 @@ val frame = new MainFrame {
     columns = 60
   }
 
-  // Wrap the output area in a ScrollPane
+  // output area in a ScrollPane
   val scrollPane = new ScrollPane(outputArea)
 
-  // Create a text field for input
+  // text field for input
   val inputField = new TextField {
     preferredSize = new Dimension(300, 20)
     minimumSize = new Dimension(300, 20)
     maximumSize = new Dimension(300, 20)
   }
 
-  // Panel for input label and field (horizontal alignment)
+  // panel for input label and field 
 val inputPanel = new BoxPanel(Orientation.Horizontal) {
   background = new Color(253, 213, 224) // pink
   contents += new Label("Enter country name or code:")
-  contents += Swing.HStrut(10) // espace entre le label et le champ texte
+  contents += Swing.HStrut(10) // space
   contents += inputField
   contents += new Button("Query") {
     reactions += {
@@ -69,11 +69,11 @@ val inputPanel = new BoxPanel(Orientation.Horizontal) {
   }
 }
 
-// Panel for buttons (horizontal alignment for each button/label)
+// panel for buttons 
 val buttonPanel = new BoxPanel(Orientation.Vertical) {
   background = new Color(253, 213, 224) // pink
 
-  // Create labels and buttons with left alignment
+  // labels and buttons 
   contents += new BoxPanel(Orientation.Horizontal) {
     background = new Color(253, 213, 224)
     contents += new Label("Reports")
@@ -141,7 +141,7 @@ val buttonPanel = new BoxPanel(Orientation.Vertical) {
   }
 }
 
-// Main layout (vertical)
+// main layout (vertical)
 contents = new BoxPanel(Orientation.Vertical) {
   background = new Color(253, 213, 224) // pink
   contents += inputPanel
@@ -151,28 +151,24 @@ contents = new BoxPanel(Orientation.Vertical) {
   contents += scrollPane
 }
 
-
-
-  // Close behavior
+  // close behavior
   peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 }
 
-    // Make sure to run the GUI on the EDT (Event Dispatch Thread)
+    // run the GUI on the EDT so the app stays open
     Swing.onEDT {
       println("Opening frame...")
       frame.visible = true
       println("Frame opened")
     }
-
-    // Keep the application alive (this ensures it stays open)
     Thread.sleep(Long.MaxValue)
   }
 
   def query(countries: List[Country], airports: List[Airport], runways: List[Runway], input: String): String = {
-    // Normalize the input string
+    // normalize the input string
     val normalizedInput = normalizeString(input.toLowerCase)
 
-    // Find the matching country (partial matching included)
+    // find the matching country (wth fuzzy reads C1)
     val matchingCountries = countries.filter { country =>
       val normalizedCountryName = normalizeString(country.name.toLowerCase.trim)
       val normalizedCountryCode = normalizeString(country.code.toLowerCase.trim)
@@ -186,7 +182,7 @@ contents = new BoxPanel(Orientation.Vertical) {
       val result = new StringBuilder(s"\nFound ${matchingCountries.length} matching country(ies):\n")
       matchingCountries.foreach(country => result.append(s"- ${country.name} (${country.code})\n"))
 
-      // If multiple countries are found, ask the user to refine the selection
+      // if multiple countries are found, ask the user to refine the selection
       if (matchingCountries.length > 1) {
         result.append("\nPlease enter the exact country code for more details:")
         val selectedCode = input // Assume input field is used for country code
@@ -201,11 +197,11 @@ contents = new BoxPanel(Orientation.Vertical) {
     }
   }
 
-  // Helper function to display country details
+  // helper function to display country details
   def displayCountryInfo(country: Country, airports: List[Airport], runways: List[Runway]): String = {
     val result = new StringBuilder(s"\nCountry: ${country.name} (${country.code})\n")
 
-    // Find airports in this country
+    // find airports in this country
     val countryAirports = airports.filter(_.isoCountry == country.code)
     if (countryAirports.isEmpty) {
       result.append("No airports found for this country.\n")
@@ -214,7 +210,7 @@ contents = new BoxPanel(Orientation.Vertical) {
       countryAirports.foreach { airport =>
         result.append(s"  - ${airport.name} (${airport.ident})\n")
 
-        // Find runways for this airport
+        // find runways for this airport
         val airportRunways = runways.filter(_.airportRef == airport.id)
         if (airportRunways.isEmpty) {
           result.append("    No runways found for this airport.\n")
@@ -238,7 +234,7 @@ contents = new BoxPanel(Orientation.Vertical) {
       (country.name, count)
     }
 
-    val sortedAirportCounts = airportCounts.sortBy { case (_, count) => -count } // Sort by count in descending order
+    val sortedAirportCounts = airportCounts.sortBy { case (_, count) => -count } // descending order
     val top10Countries = sortedAirportCounts.take(10)
     val bottom10Countries = sortedAirportCounts.reverse.take(10)
 
@@ -276,6 +272,7 @@ contents = new BoxPanel(Orientation.Vertical) {
     result.toString()
   }
 
+// Report 1
   def getTopCountries(countries: List[Country], airports: List[Airport], top: Boolean): String = {
     val airportCounts = countries.map { country =>
       val count = airports.count(_.isoCountry == country.code)
@@ -283,9 +280,9 @@ contents = new BoxPanel(Orientation.Vertical) {
     }
 
     val sortedAirportCounts = if (top) {
-      airportCounts.sortBy { case (_, count) => -count }.take(10) // Top 10
+      airportCounts.sortBy { case (_, count) => -count }.take(10) // top 10
     } else {
-      airportCounts.sortBy { case (_, count) => count }.take(10) // Bottom 10
+      airportCounts.sortBy { case (_, count) => count }.take(10) // bottom 10
     }
 
     val title = if (top) "Top 10 countries with the highest number of airports:" 
@@ -298,6 +295,7 @@ contents = new BoxPanel(Orientation.Vertical) {
     result.toString()
   }
 
+// Report 2
 def getRunwayTypesPerCountry(runways: List[Runway]): String = {
   // Group runways by country and surface type
   val runwaySurfacesPerCountry = runways.groupBy(_.airportRef).flatMap { case (airportId, runwaysForAirport) =>
@@ -307,10 +305,8 @@ def getRunwayTypesPerCountry(runways: List[Runway]): String = {
     surfaceCount
   }
 
-  // Format the result
   val result = new StringBuilder("\nTypes of runways per country:\n")
   
-  // Display surface type counts for each country
   runwaySurfacesPerCountry.foreach { case (surface, count) =>
     result.append(s"  - $surface: $count runways\n")
   }
@@ -318,7 +314,7 @@ def getRunwayTypesPerCountry(runways: List[Runway]): String = {
   result.toString()
 }
 
-
+// Report 3
 def getTopRunwayLatitudes(runways: List[Runway]): String = {
   val runwayLatitudes = runways.groupBy(_.leIdent).map { case (leIdent, runways) =>
     (leIdent, runways.length)

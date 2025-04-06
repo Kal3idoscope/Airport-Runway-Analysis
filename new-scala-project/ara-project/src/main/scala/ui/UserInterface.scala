@@ -6,18 +6,18 @@ import model.{Country, Airport, Runway}
 import java.text.Normalizer
 
 object UserInterface {
-  // Helper function to normalize strings (remove accents and special characters)
+  // helper function to normalize strings (remove accents and special characters)
   def normalizeString(str: String): String = {
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "")
   }
 
   def start(): Unit = {
-    // Parse CSV files
+    // parse CSV files
     val countries = CSVParser.parseCountries("data/countries.csv")
     val airports = CSVParser.parseAirports("data/airports.csv")
     val runways = CSVParser.parseRunways("data/runways.csv")
 
-    // Debug statements to verify parsed data
+    // debug statements to verify parsed data
     println(s"Debug: Parsed countries = ${countries.length}")
     println(s"Debug: Parsed airports = ${airports.length}")
     println(s"Debug: Parsed runways = ${runways.length}")
@@ -38,10 +38,10 @@ object UserInterface {
   println("Enter country name or code:")
   val input = StdIn.readLine().trim.toLowerCase
 
-  // Normalize the input string
+  // normalize the input string
   val normalizedInput = normalizeString(input)
 
-  // Find the matching country (partial matching included)
+  // find the matching country (with fuzzy read C2)
   val matchingCountries = countries.filter { country =>
     val normalizedCountryName = normalizeString(country.name.toLowerCase.trim)
     val normalizedCountryCode = normalizeString(country.code.toLowerCase.trim)
@@ -55,7 +55,7 @@ object UserInterface {
     println(s"\nFound ${matchingCountries.length} matching country(ies):")
     matchingCountries.foreach(country => println(s"- ${country.name} (${country.code})"))
 
-    // If multiple countries are found, ask the user to refine the selection
+    // ff multiple countries are found, ask the user to refine the selection
     if (matchingCountries.length > 1) {
       println("Please enter the exact country code for more details:")
       val selectedCode = StdIn.readLine().trim.toUpperCase
@@ -69,11 +69,11 @@ object UserInterface {
   }
 }
 
-// Helper function to display country details
+// helper function to display country details
 def displayCountryInfo(country: Country, airports: List[Airport], runways: List[Runway]): Unit = {
   println(s"\nCountry: ${country.name} (${country.code})")
 
-  // Find airports in this country
+  // find airports in this country
   val countryAirports = airports.filter(_.isoCountry == country.code)
   if (countryAirports.isEmpty) {
     println("No airports found for this country.")
@@ -82,7 +82,7 @@ def displayCountryInfo(country: Country, airports: List[Airport], runways: List[
     countryAirports.foreach { airport =>
       println(s"  - ${airport.name} (${airport.ident})")
 
-      // Find runways for this airport
+      // find runways for this airport
       val airportRunways = runways.filter(_.airportRef == airport.id)
       if (airportRunways.isEmpty) {
         println("    No runways found for this airport.")
@@ -105,7 +105,7 @@ def displayCountryInfo(country: Country, airports: List[Airport], runways: List[
       (country.name, count)
     }
 
-    val sortedAirportCounts = airportCounts.sortBy { case (_, count) => -count } // Sort by count in descending order
+    val sortedAirportCounts = airportCounts.sortBy { case (_, count) => -count } // descending order
     val top10Countries = sortedAirportCounts.take(10)
     val bottom10Countries = sortedAirportCounts.reverse.take(10)
 

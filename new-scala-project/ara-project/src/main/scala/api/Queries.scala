@@ -9,17 +9,17 @@ object Queries {
     runways: List[Runway],
     countryParam: String
   ): List[(Airport, List[Runway])] = {
-    // 1. Trouver le pays correspondant au paramètre
+    // 1. find country 
     val country = countries.find(c => 
       c.code.equalsIgnoreCase(countryParam) || 
       c.name.equalsIgnoreCase(countryParam)
     ) 
 
-    // 2. Trouver les aéroports de ce pays
+    // 2. find airport
     country match {
       case Some(c) =>
         val countryAirports = airports.filter(_.isoCountry.equalsIgnoreCase(c.code))
-        // 3. Trouver les runways pour ces aéroports
+        // 3. find runways
         countryAirports.map { airport =>
           val airportRunways = runways.filter(_.airportRef == airport.id)
           (airport, airportRunways)
@@ -28,25 +28,27 @@ object Queries {
     }
   }
 
+// REPORT 1
   def getTopCountries(
     countries: List[Country],
     airports: List[Airport],
     top: Boolean
   ): List[(Country, Int)] = {
-    // 1. Compter les aéroports par pays
+    // 1. count airports by country
     val countryAirportCount = airports
       .groupBy(_.isoCountry)
       .map { case (countryCode, aps) => (countryCode, aps.size) }
     
-    // 2. Associer avec les objets Country et trier
+    // 2. sort countries
     val sorted = countries
       .flatMap(c => countryAirportCount.get(c.code).map(count => (c, count)))
       .sortBy { case (_, count) => if (top) -count else count }
     
-    // 3. Prendre les 10 premiers/derniers
+    // 3. take top/bottom 10 
     sorted.take(10)
   }
 
+// REPORT 2
   def getRunwayTypesByCountry(
     countries: List[Country],
     airports: List[Airport],
@@ -66,6 +68,7 @@ object Queries {
     }
   }
 
+// REPORT 3
   def getMostCommonRunwayIdentifications(
     runways: List[Runway],
     top: Boolean
