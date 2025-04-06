@@ -5,19 +5,34 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "com.example"
 ThisBuild / organizationName := "example"
 
+ThisBuild / libraryDependencySchemes += "org.http4s" %% "http4s-core" % "always"
+
 resolvers += Resolver.mavenCentral
+resolvers += Resolver.sonatypeRepo("releases")
+resolvers += Resolver.sonatypeRepo("snapshots")
 
 lazy val root = (project in file("."))
   .settings(
     name := "ara-project",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
+      // GUI
+      scalaSwing,
+
+
+      // http4s stack
+      http4sBlaze,
+      http4sDsl,
+      http4sCirce,
+
+      // Circe
+      circeGeneric,
+      circeParser,
+
+      // Cats Effect
+      catsEffect,
+      log4cats
+
     )
-
-    //libraryDependencies += munit % Test
-    //libraryDependencies += "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
-
-    //libraryDependencies ++= Dependencies.allDependencies
 
   )
 
