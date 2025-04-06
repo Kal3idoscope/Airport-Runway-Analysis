@@ -11,7 +11,6 @@ object UserInterface {
   def normalizeString(str: String): String = {
     Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "")
   }
-
   def start(): Unit = {
     val countries = CSVParser.parseCountries("data/countries.csv")
     val airports = CSVParser.parseAirports("data/airports.csv")
